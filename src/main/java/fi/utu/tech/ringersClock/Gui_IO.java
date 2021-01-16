@@ -146,8 +146,8 @@ public class Gui_IO {
 	 * 
 	 * IMPLEMENT THIS ONE
 	 */
-	public void createNewGroup(String name, Integer hour, Integer minutes, boolean norain, boolean temp) {
-		System.out.println("Create New Group pressed, name: " + name + " Wake-up time: " + hour + ":" + minutes + " Rain allowed: " + norain + " Temperature over 0 deg: " + temp);
+	public void createNewGroup(String name, Integer hour, Integer minutes, boolean notRaining, boolean temp) {
+		System.out.println("Create New Group pressed, name: " + name + " Wake-up time: " + hour + ":" + minutes + " Rain allowed: " + notRaining + " Temperature over 0 deg: " + temp);
 	}
 
 	/*
