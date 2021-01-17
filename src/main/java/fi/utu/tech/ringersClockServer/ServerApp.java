@@ -9,16 +9,13 @@ public class ServerApp {
 	private int serverPort = 3000;
 
 	public ServerApp() {
-
 		wup = new WakeUpService();
 		listener = new ServerSocketListener(serverIP, serverPort, wup);
-
 		wup.start();
 		listener.start();
 	}
 
 	public static void main(String[] args) {
-
 		System.out.println("Starting server...");
 		app = new ServerApp();
 	}
