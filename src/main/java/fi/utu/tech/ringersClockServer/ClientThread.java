@@ -1,10 +1,9 @@
 package fi.utu.tech.ringersClockServer;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import fi.utu.tech.ringersClock.entities.WakeUpGroup;
+
+import java.io.*;
 import java.net.Socket;
-import java.io.IOException;
 
 public class ClientThread implements Runnable {
 
@@ -16,41 +15,32 @@ public class ClientThread implements Runnable {
 
     public void run() {
         System.out.println("Accepted Client Address - " + clientSocket.getInetAddress().getHostName());
-        PrintWriter out = null;
-        BufferedReader in = null;
+        WakeUpGroup wug;
         try {
+            //Luodaan output ja input streamit
+            ObjectInputStream serverInputStream = new ObjectInputStream(clientSocket.getInputStream());
+            ObjectOutputStream serverOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
 
-            // get the outputstream of client
-            out = new PrintWriter(
-                    clientSocket.getOutputStream(), true);
+            //Luetaan clientiltä tullut objekti ja castatään se WakeUpGroupiksi
+            wug = (WakeUpGroup)serverInputStream.readObject();
 
-            // get the inputstream of client
-            in = new BufferedReader(
-                    new InputStreamReader(
-                            clientSocket.getInputStream()));
+            //Asetetaan wakeupgroupin nimeksi "Penis" serverillä, koska olen henkiseltä iältäni 5 :D
+            wug.setName("Penis");
+            serverOutputStream.writeObject(wug);
 
-            String line;
-            while ((line = in.readLine()) != null) {
-                // writing the received message from
-                // client
-                System.out.printf(
-                        " Sent from the client: %s\n",
-                        line);
-                out.println(line);
-            }
+            //suljetaan streamit
+            serverOutputStream.close();
+            serverInputStream.close();
         }
         catch (IOException e) {
             e.printStackTrace();
         }
+        catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
         finally {
             try {
-                if (out != null) {
-                    out.close();
-                }
-                if (in != null) {
-                    in.close();
-                    clientSocket.close();
-                }
+                clientSocket.close();
             }
             catch (IOException e) {
                 e.printStackTrace();

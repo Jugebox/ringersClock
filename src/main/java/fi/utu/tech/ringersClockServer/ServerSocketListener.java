@@ -1,7 +1,5 @@
 package fi.utu.tech.ringersClockServer;
 
-import fi.utu.tech.ringersClockServer.ClientThread;
-
 import java.net.Socket;
 import java.net.ServerSocket;
 
@@ -27,12 +25,12 @@ public class ServerSocketListener extends Thread {
 
 			//infinite loop for accepting client request
 			while(true){
-				//accepting a new request with socket object
+				//Otetaan vastaan kutsu clientiltä ja luodaan soketti sen pohjalta
 				Socket client = server.accept();
 				System.out.println("New client connected " + client.getInetAddress().getHostName());
 
+				//käynnistetään uusi client säie soketin kera
 				ClientThread ct = new ClientThread(client);
-
 				new Thread(ct).start();
 			}
 		}catch (Exception e){

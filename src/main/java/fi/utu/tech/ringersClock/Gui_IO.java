@@ -1,5 +1,8 @@
 package fi.utu.tech.ringersClock;
 
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -153,6 +156,29 @@ public class Gui_IO {
 
 		System.out.println("Create New Group pressed, name: " + name + " Wake-up time: " + hour + ":" + minutes + " Rain allowed: " + notRaining + " Temperature over 0 deg: " + temp);
 		System.out.println("Id: " + id);
+
+		try {
+			//Uusi soketti yhteys serveriin osoitteeseen 127.0.0.1 (joka viittaa tietokoneeseen itseensä), ja porttiin 3000
+			Socket socketConnection = new Socket("127.0.0.1", 3000);
+
+			//Luodaan ObjectInput- ja OutputStremit. Näiden kautta WakeupGroup -olio lähetetään serverille!
+			ObjectOutputStream clientOutputStream = new ObjectOutputStream(socketConnection.getOutputStream());
+			ObjectInputStream clientInputStream = new ObjectInputStream(socketConnection.getInputStream());
+
+			//Lähetetään objekti...
+			clientOutputStream.writeObject(group1);
+
+			//Luetaan takaisin tullut objekti...
+			group1 = (WakeUpGroup) clientInputStream.readObject();
+
+			//Heh :D
+			System.out.println("WakeupGroup name: " + group1.getName());
+
+			//Suljetaan streamit, jotta niihin käytetyt resurssit vapautuvat...
+			clientOutputStream.close();
+			clientInputStream.close();
+
+		} catch (Exception e) {System.out.println(e); }
 	}
 
 	/*
