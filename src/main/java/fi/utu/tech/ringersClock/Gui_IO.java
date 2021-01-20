@@ -3,6 +3,7 @@ package fi.utu.tech.ringersClock;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -152,7 +153,7 @@ public class Gui_IO {
 	 */
 	public void createNewGroup(String name, Integer hour, Integer minutes, boolean notRaining, boolean temp) {
 		UUID id =  UUID.randomUUID();
-		WakeUpGroup group1 = new WakeUpGroup(id, name);
+		WakeUpGroup group1 = new WakeUpGroup(id, name, hour, minutes);
 
 		System.out.println("Create New Group pressed, name: " + name + " Wake-up time: " + hour + ":" + minutes + " Rain allowed: " + notRaining + " Temperature over 0 deg: " + temp);
 		System.out.println("Id: " + id);

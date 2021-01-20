@@ -14,16 +14,18 @@ public class WakeUpGroup implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private String name;
 	private UUID ID;
-	private int start;
-	private int end;
+	private Integer hour;
+	private Integer minutes;
 	private boolean notRaining;
-	private boolean tempOver0;
-	ArrayList<String> members = new ArrayList<>();
+	private boolean temp;
+	ArrayList<UUID> members = new ArrayList<>();
 
-	public WakeUpGroup(UUID id, String name) {
+	public WakeUpGroup(UUID id, String name, Integer hour, Integer minutes) {
 		super();
 		this.ID = id;
 		this.name = name;
+		this.hour = hour;
+		this.minutes = minutes;
 	}
 
 	public String getName() {
@@ -42,12 +44,32 @@ public class WakeUpGroup implements Serializable {
 		this.ID = ID;
 	}
 
-	public ArrayList<String> getMembers() {
+	public ArrayList<UUID> getMembers() {
 		return members;
 	}
 
-	public String getLeader() {
+	public UUID getLeader() {
 		return members.get(0);
+	}
+
+	public void addMemeber(UUID memberId) {
+		members.add(memberId);
+	}
+
+	public void setHour(int hour) {
+		this.hour = hour;
+	}
+
+	public void setMinutes(int minutes) {
+		this.minutes = minutes;
+	}
+
+	public int getHour() {
+		return hour;
+	}
+
+	public int getMinutes() {
+		return minutes;
 	}
 
 	@Override
