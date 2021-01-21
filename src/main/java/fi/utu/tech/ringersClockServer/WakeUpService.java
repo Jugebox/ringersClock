@@ -7,28 +7,30 @@ import java.util.UUID;
 
 public class WakeUpService extends Thread {
 
-	ArrayList<WakeUpGroup> wgList = new ArrayList<>();
+	private ArrayList<WakeUpGroup> groups = new ArrayList<>();
 
-	public WakeUpService() {
-
+	public void addWakeUpGroup(WakeUpGroup wg) {
+		groups.add(wg);
 	}
 
-	public void run() {
-		while(true){
-
+	public void addMember(UUID ID, ClientThread ct) {
+		for(int i = 0; i < groups.size(); i++){
+			if(groups.get(i).getID().compareTo(ID) == 0) {
+				groups.get(i).addMemeber(ct.getID());
+			}
 		}
 	}
 
-	public void addWakeUpGroup(WakeUpGroup wg) {
-		wgList.add(wg);
+	public ArrayList<WakeUpGroup> getGroups() {
+		return this.groups;
 	}
 
-	public WakeUpGroup getWakeUpGroup(UUID ID){
-		for(int i = 0; i < wgList.size(); i++){
-			if(wgList.get(i).getID().compareTo(ID) == 0) return wgList.get(i);
+	/*public WakeUpGroup getWakeUpGroup(UUID ID){
+		for(int i = 0; i < clientThreads.size(); i++){
+			//if(clientThreads.get(i).getID().compareTo(ID) == 0) return wgList.get(i);
 		}
 		return null;
 	}
-
+	*/
 
 }

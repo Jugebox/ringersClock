@@ -30,10 +30,10 @@ public class ServerSocketListener extends Thread {
 				System.out.println("New client connected " + client.getInetAddress().getHostName());
 
 				//käynnistetään uusi client säie soketin kera
-				ClientThread ct = new ClientThread(client);
-				new Thread(ct).start();
+				ClientThread ct = new ClientThread(client, wup);
+				ct.start();
 			}
-		}catch (Exception e){
+		} catch (Exception e){
 
 		}
 

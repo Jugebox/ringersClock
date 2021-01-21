@@ -33,7 +33,7 @@ public class Gui_IO {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				cont.setAlarmTime(Instant.now());
+				cont.setAlarmTime(time);
 			}
 		});
 	}
@@ -178,6 +178,8 @@ public class Gui_IO {
 			//Suljetaan streamit, jotta niihin käytetyt resurssit vapautuvat...
 			clientOutputStream.close();
 			clientInputStream.close();
+
+			appendToStatus("Testi");
 
 		} catch (Exception e) {System.out.println(e); }
 	}
