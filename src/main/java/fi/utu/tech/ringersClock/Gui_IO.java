@@ -153,6 +153,7 @@ public class Gui_IO {
 	 * IMPLEMENT THIS ONE
 	 */
 	public void createNewGroup(String name, Integer hour, Integer minutes, boolean notRaining, boolean temp) {
+		if(client.getIsInGroup()) return;
 		UUID id =  UUID.randomUUID();
 		WakeUpGroup group = new WakeUpGroup(id, name, hour, minutes);
 
@@ -174,6 +175,7 @@ public class Gui_IO {
 	 */
 
 	public void joinGroup(WakeUpGroup group) {
+		if(client.getIsInGroup()) return;
 		System.out.println("Join Group pressed" + group.getName());
 		try {
 			client.joinGroup(group.getID());
@@ -188,7 +190,7 @@ public class Gui_IO {
 	 */
 	public void resignGroup() {
 		System.out.println("Resign Group pressed");
-		client.stopRunning();
+		client.setIsInGroup(false);
 	}
 
 	public void setClient(ClockClient client){

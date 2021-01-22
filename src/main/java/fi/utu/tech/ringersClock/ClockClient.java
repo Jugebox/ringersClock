@@ -22,6 +22,8 @@ public class ClockClient extends Thread {
 	private ObjectOutputStream clientOutputStream;
 	private ObjectInputStream clientInputStream;
 
+	private boolean isInGroup = false;
+
 	public ClockClient(String host, int port, Gui_IO gio) {
 		this.host = host;
 		this.port = port;
@@ -44,7 +46,12 @@ public class ClockClient extends Thread {
 			e.printStackTrace();
 		}
 		while(running) {
-
+			try{
+				isInGroup = clientInputStream.readBoolean();
+				System.out.println(isInGroup);
+			} catch (IOException e){
+				e.printStackTrace();
+			}
 		}
 		try{
 			System.out.println("Closing connection to the server...");
@@ -68,9 +75,7 @@ public class ClockClient extends Thread {
 
 			//Luetaan takaisin tullut objekti...
 			System.out.println("Here 2.5");
-			Object obj = clientInputStream.readObject();
-			System.out.println(obj.getClass());
-			ArrayList<WakeUpGroup> groups = (ArrayList<WakeUpGroup>) obj;
+			ArrayList<WakeUpGroup> groups = (ArrayList<WakeUpGroup>) clientInputStream.readObject();
 			System.out.println("Here 3");
 			return groups;
 		} catch (Exception e) {
@@ -96,6 +101,14 @@ public class ClockClient extends Thread {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	public boolean getIsInGroup(){
+		return this.isInGroup;
+	}
+
+	public void setIsInGroup(boolean bool){
+		this.isInGroup = bool;
 	}
 
 	public void stopRunning(){

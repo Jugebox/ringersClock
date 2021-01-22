@@ -12,7 +12,9 @@ public class ClientThread extends Thread {
     private Socket clientSocket;
     WakeUpService wup;
     private UUID ID;
-    private UUID groupId = null;
+    private UUID groupId;
+
+    private boolean isInGroup = false;
 
     private ObjectInputStream serverInputStream;
     private ObjectOutputStream serverOutputStream;
@@ -36,6 +38,7 @@ public class ClientThread extends Thread {
             String action;
             System.out.println(clientSocket.isClosed());
             while(!clientSocket.isClosed()){
+                sendIsInGroup();
                 action = reader.readLine().trim();
                 System.out.println(action);
                 if(action.equals("create-group")){
@@ -45,6 +48,10 @@ public class ClientThread extends Thread {
                 if(action.equals("join-group")){
                     System.out.println("joining group...");
                     joinGroup();
+                }
+                if(action.equals("resign-group")){
+                    System.out.println("resigning group...");
+                    resignGroup();
                 }
                 System.out.println(clientSocket.isClosed());
             }
@@ -65,21 +72,33 @@ public class ClientThread extends Thread {
         }
     }
 
+    private void resignGroup(){
+        wup.removeMember(ID, groupId);
+    }
+
+    private void sendIsInGroup(){
+        try {
+            serverOutputStream.writeBoolean(this.isInGroup);
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
     private void createNewGroup() {
         WakeUpGroup wug;
         System.out.println("HEI VITTU");
         try {
-            System.out.println("============================================");
             //Luetaan clientiltä tullut objekti ja castatään se WakeUpGroupiksi
             wug = (WakeUpGroup)serverInputStream.readObject();
 
             //Lisätään wakeup grouppiin käyttäjä ja lähetetään tiedot kaikista ryhmistä takaisin clientille
             wug.addMemeber(this.ID);
+
             this.groupId = wug.getID();
+
             wup.addWakeUpGroup(wug);
             System.out.println(wug.getName());
             serverOutputStream.writeObject(wup.getGroups());
-            System.out.println("============================================");
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -94,7 +113,9 @@ public class ClientThread extends Thread {
         try{
             //reading group uuid from client
             groupId = (UUID) serverInputStream.readObject();
+
             this.groupId = groupId;
+
             wup.addMember(groupId, this);
 
             //sending backt the updated wakeupgroups
