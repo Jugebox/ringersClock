@@ -18,6 +18,7 @@ import javafx.scene.control.ButtonType;
 public class Gui_IO {
 
 	private MainViewController cont;
+	private ClockClient client;
 
 	public Gui_IO(MainViewController cont) {
 		this.cont = cont;
@@ -153,34 +154,15 @@ public class Gui_IO {
 	 */
 	public void createNewGroup(String name, Integer hour, Integer minutes, boolean notRaining, boolean temp) {
 		UUID id =  UUID.randomUUID();
-		WakeUpGroup group1 = new WakeUpGroup(id, name, hour, minutes);
+		WakeUpGroup group = new WakeUpGroup(id, name, hour, minutes);
 
 		System.out.println("Create New Group pressed, name: " + name + " Wake-up time: " + hour + ":" + minutes + " Rain allowed: " + notRaining + " Temperature over 0 deg: " + temp);
 		System.out.println("Id: " + id);
 
 		try {
-			//Uusi soketti yhteys serveriin osoitteeseen 127.0.0.1 (joka viittaa tietokoneeseen itseensä), ja porttiin 3000
-			Socket socketConnection = new Socket("127.0.0.1", 3000);
-
-			//Luodaan ObjectInput- ja OutputStremit. Näiden kautta WakeupGroup -olio lähetetään serverille!
-			ObjectOutputStream clientOutputStream = new ObjectOutputStream(socketConnection.getOutputStream());
-			ObjectInputStream clientInputStream = new ObjectInputStream(socketConnection.getInputStream());
-
-			//Lähetetään objekti...
-			clientOutputStream.writeObject(group1);
-
-			//Luetaan takaisin tullut objekti...
-			group1 = (WakeUpGroup) clientInputStream.readObject();
-
-			//Heh :D
-			System.out.println("WakeupGroup name: " + group1.getName());
-
-			//Suljetaan streamit, jotta niihin käytetyt resurssit vapautuvat...
-			clientOutputStream.close();
-			clientInputStream.close();
-
-			appendToStatus("Testi");
-
+			ArrayList<WakeUpGroup> groups = client.createGroup(group);
+			fillGroups(groups);
+			System.out.println("Here 1");
 		} catch (Exception e) {System.out.println(e); }
 	}
 
@@ -193,6 +175,9 @@ public class Gui_IO {
 
 	public void joinGroup(WakeUpGroup group) {
 		System.out.println("Join Group pressed" + group.getName());
+		try {
+			client.joinGroup(group.getID());
+		} catch (Exception e) {System.out.println(e); }
 	}
 	
 	/*
@@ -203,5 +188,10 @@ public class Gui_IO {
 	 */
 	public void resignGroup() {
 		System.out.println("Resign Group pressed");
+		client.stopRunning();
+	}
+
+	public void setClient(ClockClient client){
+		this.client = client;
 	}
 }

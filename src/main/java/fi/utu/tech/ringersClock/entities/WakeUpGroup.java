@@ -56,6 +56,12 @@ public class WakeUpGroup implements Serializable {
 		members.add(memberId);
 	}
 
+	public void removeMember(UUID memberId){
+		for(int i = 0; i < members.size(); i++){
+			if(members.get(i).compareTo(memberId) == 0) members.remove(i);
+		}
+	}
+
 	public void setHour(int hour) {
 		this.hour = hour;
 	}

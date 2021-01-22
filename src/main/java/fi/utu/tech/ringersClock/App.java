@@ -46,6 +46,8 @@ public class App extends Application {
 
 		cc = new ClockClient(serverIP, port, gio);
 		cc.start();
+
+		gio.setClient(cc);
 	}
 
 	/*

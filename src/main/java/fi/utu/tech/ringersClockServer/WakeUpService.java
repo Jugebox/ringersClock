@@ -25,12 +25,25 @@ public class WakeUpService extends Thread {
 		return this.groups;
 	}
 
-	/*public WakeUpGroup getWakeUpGroup(UUID ID){
-		for(int i = 0; i < clientThreads.size(); i++){
-			//if(clientThreads.get(i).getID().compareTo(ID) == 0) return wgList.get(i);
+	public WakeUpGroup getWakeUpGroup(UUID ID){
+		for(int i = 0; i < groups.size(); i++){
+			if(groups.get(i).getID().compareTo(ID) == 0) return groups.get(i);
 		}
 		return null;
 	}
-	*/
 
+	public void removeMember(UUID memberId, UUID groupId){
+		WakeUpGroup group = getWakeUpGroup(groupId);
+		group.removeMember(memberId);
+	}
+
+	public void printMembers(){
+		for(int i = 0; i < groups.size(); i++) {
+			System.out.println("Members of group " + groups.get(i).getName());
+			ArrayList<UUID> membs = groups.get(i).getMembers();
+			for (int j = 0; j < membs.size(); j++){
+				System.out.println(membs.get(j));
+			}
+		}
+	}
 }
