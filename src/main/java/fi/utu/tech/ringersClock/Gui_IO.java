@@ -5,6 +5,8 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.time.Instant;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -159,11 +161,35 @@ public class Gui_IO {
 		System.out.println("Create New Group pressed, name: " + name + " Wake-up time: " + hour + ":" + minutes + " Rain allowed: " + notRaining + " Temperature over 0 deg: " + temp);
 		System.out.println("Id: " + id);
 
+		int alarmHour;
+		if (hour == 1) alarmHour = 23;
+		else if (hour == 0) alarmHour = 22;
+		else alarmHour = hour - 2;
+
 		try {
 			ArrayList<WakeUpGroup> groups = client.createGroup(group);
 			fillGroups(groups);
 			System.out.println("Here 1");
+			if (hour < 10) {
+				CharSequence alarmTime = "2021-01-22T0" + alarmHour + ":" + minutes + ":00Z";
+				Instant time = Instant.parse(alarmTime);
+				System.out.println(time);
+				cont.setAlarmTime(time);
+			}
+			else {
+				CharSequence alarmTime = "2021-01-22T" + alarmHour + ":" + minutes + ":00Z";
+				Instant time = Instant.parse(alarmTime);
+				System.out.println(time);
+				cont.setAlarmTime(time);
+			}
 		} catch (Exception e) {System.out.println(e); }
+
+
+		//2011-12-03T10:15:30Z
+		//CharSequence alarmTime = "2021-01-22T" + hour + ":" + minutes + ":00Z";
+		//Instant time = Instant.parse(alarmTime);
+
+		//cont.setAlarmTime(time);
 	}
 
 	/*
