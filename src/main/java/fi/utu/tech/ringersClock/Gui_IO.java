@@ -17,6 +17,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 
+import static fi.utu.tech.weatherInfo.FMIWeatherService.getWeather;
+
 public class Gui_IO {
 
 	private MainViewController cont;
@@ -160,28 +162,27 @@ public class Gui_IO {
 
 		System.out.println("Create New Group pressed, name: " + name + " Wake-up time: " + hour + ":" + minutes + " Rain allowed: " + notRaining + " Temperature over 0 deg: " + temp);
 		System.out.println("Id: " + id);
-
-		int alarmHour;
-		if (hour == 1) alarmHour = 23;
-		else if (hour == 0) alarmHour = 22;
-		else alarmHour = hour - 2;
-
 		try {
 			ArrayList<WakeUpGroup> groups = client.createGroup(group);
 			fillGroups(groups);
 			System.out.println("Here 1");
 			if (hour < 10) {
-				CharSequence alarmTime = "2021-01-22T0" + alarmHour + ":" + minutes + ":00Z";
+				CharSequence alarmTime = "2021-01-22T0" + hour + ":" + minutes + ":00Z";
 				Instant time = Instant.parse(alarmTime);
 				System.out.println(time);
 				cont.setAlarmTime(time);
 			}
 			else {
-				CharSequence alarmTime = "2021-01-22T" + alarmHour + ":" + minutes + ":00Z";
+				CharSequence alarmTime = "2021-01-22T" + hour + ":" + minutes + ":00Z";
 				Instant time = Instant.parse(alarmTime);
 				System.out.println(time);
 				cont.setAlarmTime(time);
 			}
+
+			//Säätilan testaus
+			System.out.println(getWeather());
+
+
 		} catch (Exception e) {System.out.println(e); }
 
 
