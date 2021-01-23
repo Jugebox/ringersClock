@@ -1,4 +1,5 @@
 package fi.utu.tech.ringersClock;
+import static fi.utu.tech.weatherInfo.FMIWeatherService.getWeather;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -155,6 +156,8 @@ public class Gui_IO {
 	 * IMPLEMENT THIS ONE
 	 */
 	public void createNewGroup(String name, Integer hour, Integer minutes, boolean notRaining, boolean temp) {
+		System.out.println("VITTU weather data");
+		System.out.println(getWeather());
 		UUID id =  UUID.randomUUID();
 		WakeUpGroup group = new WakeUpGroup(id, name, hour, minutes);
 
@@ -182,6 +185,7 @@ public class Gui_IO {
 				System.out.println(time);
 				cont.setAlarmTime(time);
 			}
+			System.out.println(getWeather());
 		} catch (Exception e) {System.out.println(e); }
 
 
