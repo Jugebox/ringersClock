@@ -1,6 +1,6 @@
 package fi.utu.tech.ringersClockServer;
 
-import fi.utu.tech.ringersClock.entities.WakeUpGroup;
+import fi.utu.tech.ringersClock.entities.*;
 
 import java.io.*;
 import java.net.Socket;
@@ -12,7 +12,7 @@ public class ClientThread extends Thread {
     private Socket clientSocket;
     WakeUpService wup;
     private UUID ID;
-    private UUID groupId;
+    private UUID groupId = null;
 
     private boolean isInGroup = false;
 
@@ -35,28 +35,42 @@ public class ClientThread extends Thread {
             serverInputStream = new ObjectInputStream(input);
             serverOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
 
-            String action;
+            Actions action;
             System.out.println(clientSocket.isClosed());
             while(!clientSocket.isClosed()){
-                sendIsInGroup();
-                action = reader.readLine().trim();
-                System.out.println(action);
-                if(action.equals("create-group")){
-                    System.out.println("creating a new group...");
-                    createNewGroup();
+                try {
+                    //läheteään käyttäjälle tieto siitä kuuluko hän jo ryhmään
+                    //selvitetään mitä käyttäjä haluaa tehdä
+                    RequestInfo info = (RequestInfo) serverInputStream.readObject();
+                    action = info.getAction();
+                    System.out.println(action);
+                    switch (action){
+                        case CREATE:
+                            System.out.println("creating a new group...");
+                            createNewGroup(info.getGroup());
+                            System.out.println("group created!");
+                            continue;
+                        case JOIN:
+                            System.out.println("joining group...");
+                            joinGroup(info.getGroup());
+                            continue;
+                        case RESIGN:
+                            System.out.println("resigning group...");
+                            resignGroup();
+                            continue;
+                        case UPDATE:
+                            serverOutputStream.writeObject(new ResponseInfo(false, wup.getGroups()));
+                            continue;
+                        default:
+                            continue;
+                    }
+                }catch (ClassNotFoundException e){
+                    e.printStackTrace();
                 }
-                if(action.equals("join-group")){
-                    System.out.println("joining group...");
-                    joinGroup();
-                }
-                if(action.equals("resign-group")){
-                    System.out.println("resigning group...");
-                    resignGroup();
-                }
-                System.out.println(clientSocket.isClosed());
             }
 
             wup.removeMember(ID, groupId);
+            wup.removeFromGroups(ID);
             wup.printMembers();
             groupId = null;
 
@@ -73,57 +87,68 @@ public class ClientThread extends Thread {
     }
 
     private void resignGroup(){
+        if(groupId == null) return;
         wup.removeMember(ID, groupId);
-    }
-
-    private void sendIsInGroup(){
+        wup.removeFromGroups(ID);
+        groupId = null;
         try {
-            serverOutputStream.writeBoolean(this.isInGroup);
-        }catch (IOException e){
+            serverOutputStream.writeObject(new ResponseInfo(false, wup.getGroups()));
+        } catch (IOException e){
             e.printStackTrace();
         }
     }
 
-    private void createNewGroup() {
-        WakeUpGroup wug;
+    private void createNewGroup(WakeUpGroup group) {
         System.out.println("HEI VITTU");
         try {
-            //Luetaan clientiltä tullut objekti ja castatään se WakeUpGroupiksi
-            wug = (WakeUpGroup)serverInputStream.readObject();
+            //onko käyttäjä jo ryhmässä?
+            boolean inGroup = wup.addToGroups(ID);
 
-            //Lisätään wakeup grouppiin käyttäjä ja lähetetään tiedot kaikista ryhmistä takaisin clientille
-            wug.addMemeber(this.ID);
+            System.out.println(inGroup);
 
-            this.groupId = wug.getID();
+            if(!inGroup){
+                serverOutputStream.writeObject(new ResponseInfo(true, wup.getGroups()));
+            }
+            else {
+                //Lisätään wakeup grouppiin käyttäjä ja lähetetään tiedot kaikista ryhmistä takaisin clientille
+                group.addMemeber(this.ID);
 
-            wup.addWakeUpGroup(wug);
-            System.out.println(wug.getName());
-            serverOutputStream.writeObject(wup.getGroups());
+                this.groupId = group.getID();
+
+                wup.addWakeUpGroup(group);
+                System.out.println(group.getName());
+
+                serverOutputStream.writeObject(new ResponseInfo(false, wup.getGroups()));
+
+                wup.printMembers();
+            }
         }
         catch (IOException e) {
             e.printStackTrace();
         }
-        catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
     }
 
-    private void joinGroup() {
-        UUID groupId;
+    private void joinGroup(WakeUpGroup group) {
         try{
-            //reading group uuid from client
-            groupId = (UUID) serverInputStream.readObject();
+            //onko käyttäjä jo ryhmässä?
+            boolean inGroup = wup.addToGroups(ID);
 
-            this.groupId = groupId;
+            if(!inGroup){
+                serverOutputStream.writeObject(new ResponseInfo(true, wup.getGroups()));
+            }
+            else {
+                //Lisätään wakeup grouppiin käyttäjä ja lähetetään tiedot kaikista ryhmistä takaisin clientille
+                group.addMemeber(this.ID);
 
-            wup.addMember(groupId, this);
+                this.groupId = group.getID();
 
-            //sending backt the updated wakeupgroups
-            serverOutputStream.writeObject(wup.getGroups());
+                wup.addMember(groupId, this);
+
+                serverOutputStream.writeObject(new ResponseInfo(false, wup.getGroups()));
+
+                wup.printMembers();
+            }
         }catch (IOException e){
-            e.printStackTrace();
-        }
-        catch (ClassNotFoundException e){
             e.printStackTrace();
         }
     }

@@ -4,6 +4,9 @@ package fi.utu.tech.ringersClock;
  * A class for handling network related stuff
  */
 
+import fi.utu.tech.ringersClock.entities.Actions;
+import fi.utu.tech.ringersClock.entities.RequestInfo;
+import fi.utu.tech.ringersClock.entities.ResponseInfo;
 import fi.utu.tech.ringersClock.entities.WakeUpGroup;
 
 import java.io.*;
@@ -17,12 +20,9 @@ public class ClockClient extends Thread {
 	private int port;
 	private Gui_IO gio;
 	private Socket socket;
-	private PrintWriter writer;
 	private boolean running = true;
 	private ObjectOutputStream clientOutputStream;
 	private ObjectInputStream clientInputStream;
-
-	private boolean isInGroup = false;
 
 	public ClockClient(String host, int port, Gui_IO gio) {
 		this.host = host;
@@ -37,21 +37,26 @@ public class ClockClient extends Thread {
 			this.socket = new Socket(host, port);
 			gio.setClient(this);
 
-			OutputStream output = socket.getOutputStream();
-			writer = new PrintWriter(output, true);
-
 			clientOutputStream = new ObjectOutputStream(socket.getOutputStream());
 			clientInputStream = new ObjectInputStream(socket.getInputStream());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		while(running) {
-			try{
-				isInGroup = clientInputStream.readBoolean();
-				System.out.println(isInGroup);
-			} catch (IOException e){
+			try {
+				//Luetaan takaisin tullut objekti...
+				System.out.println("Fetching...");
+				ResponseInfo res = (ResponseInfo) clientInputStream.readObject();
+				System.out.println(res);
+				System.out.println("Fetched!");
+				gio.fillGroups(res.getUpdatedGroups());
+			} catch (ClassNotFoundException e){
 				e.printStackTrace();
 			}
+			catch (IOException e){
+				e.printStackTrace();
+			}
+
 		}
 		try{
 			System.out.println("Closing connection to the server...");
@@ -59,56 +64,41 @@ public class ClockClient extends Thread {
 			//Suljetaan streamit, jotta niihin käytetyt resurssit vapautuvat...
 			clientOutputStream.close();
 			clientInputStream.close();
-			this.socket.close();
+			socket.close();
 		}catch (IOException e){
 			e.printStackTrace();
 		}
 	}
 
-	public ArrayList<WakeUpGroup> createGroup(WakeUpGroup group) {
+	public void createGroup(WakeUpGroup group) {
 		try {
-			System.out.println("Here 2");
-			writer.println("create-group");
-
+			System.out.println("Try!!!");
+			RequestInfo info = new RequestInfo(Actions.CREATE, group);
 			//Lähetetään objekti...
-			clientOutputStream.writeObject(group);
-
-			//Luetaan takaisin tullut objekti...
-			System.out.println("Here 2.5");
-			ArrayList<WakeUpGroup> groups = (ArrayList<WakeUpGroup>) clientInputStream.readObject();
-			System.out.println("Here 3");
-			return groups;
-		} catch (Exception e) {
-			System.out.println(e);
-			return null;
+			clientOutputStream.writeObject(info);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
-	public ArrayList<WakeUpGroup> joinGroup(UUID groupId){
-		writer.println("join-group");
+	public void joinGroup(WakeUpGroup group){
 		try{
+			RequestInfo info = new RequestInfo(Actions.JOIN, group);
 			//Lähetetään objekti...
-			clientOutputStream.writeObject(groupId);
-
-			//Luetaan takaisin tullut objekti...
-			ArrayList<WakeUpGroup> groups = (ArrayList<WakeUpGroup>) clientInputStream.readObject();
-
-			return groups;
+			clientOutputStream.writeObject(info);
 		}catch (IOException e){
 			e.printStackTrace();
 		}
-		catch (ClassNotFoundException e){
+	}
+
+	public void resignGroup(){
+		try {
+			RequestInfo info = new RequestInfo(Actions.RESIGN, null);
+			//Lähetetään objekti...
+			clientOutputStream.writeObject(info);
+		} catch (IOException e){
 			e.printStackTrace();
 		}
-		return null;
-	}
-
-	public boolean getIsInGroup(){
-		return this.isInGroup;
-	}
-
-	public void setIsInGroup(boolean bool){
-		this.isInGroup = bool;
 	}
 
 	public void stopRunning(){

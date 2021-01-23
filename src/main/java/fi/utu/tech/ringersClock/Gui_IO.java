@@ -155,30 +155,29 @@ public class Gui_IO {
 	 * IMPLEMENT THIS ONE
 	 */
 	public void createNewGroup(String name, Integer hour, Integer minutes, boolean notRaining, boolean temp) {
-		if(client.getIsInGroup()) return;
 		UUID id =  UUID.randomUUID();
 		WakeUpGroup group = new WakeUpGroup(id, name, hour, minutes);
 
 		System.out.println("Create New Group pressed, name: " + name + " Wake-up time: " + hour + ":" + minutes + " Rain allowed: " + notRaining + " Temperature over 0 deg: " + temp);
 		System.out.println("Id: " + id);
 
-		int alarmHour;
+		/*int alarmHour;
 		if (hour == 1) alarmHour = 23;
 		else if (hour == 0) alarmHour = 22;
-		else alarmHour = hour - 2;
+		else alarmHour = hour - 2;*/
+
+
+		client.createGroup(group);
 
 		try {
-			ArrayList<WakeUpGroup> groups = client.createGroup(group);
-			fillGroups(groups);
-			System.out.println("Here 1");
 			if (hour < 10) {
-				CharSequence alarmTime = "2021-01-22T0" + alarmHour + ":" + minutes + ":00Z";
+				CharSequence alarmTime = "2021-01-22T0" + hour + ":" + minutes + ":00Z";
 				Instant time = Instant.parse(alarmTime);
 				System.out.println(time);
 				cont.setAlarmTime(time);
 			}
 			else {
-				CharSequence alarmTime = "2021-01-22T" + alarmHour + ":" + minutes + ":00Z";
+				CharSequence alarmTime = "2021-01-22T" + hour + ":" + minutes + ":00Z";
 				Instant time = Instant.parse(alarmTime);
 				System.out.println(time);
 				cont.setAlarmTime(time);
@@ -201,11 +200,8 @@ public class Gui_IO {
 	 */
 
 	public void joinGroup(WakeUpGroup group) {
-		if(client.getIsInGroup()) return;
 		System.out.println("Join Group pressed" + group.getName());
-		try {
-			client.joinGroup(group.getID());
-		} catch (Exception e) {System.out.println(e); }
+		client.joinGroup(group);
 	}
 	
 	/*
@@ -216,7 +212,7 @@ public class Gui_IO {
 	 */
 	public void resignGroup() {
 		System.out.println("Resign Group pressed");
-		client.setIsInGroup(false);
+		client.resignGroup();
 	}
 
 	public void setClient(ClockClient client){

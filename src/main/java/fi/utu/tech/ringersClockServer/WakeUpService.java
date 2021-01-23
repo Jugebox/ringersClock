@@ -3,14 +3,24 @@ package fi.utu.tech.ringersClockServer;
 import fi.utu.tech.ringersClock.entities.WakeUpGroup;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.UUID;
 
 public class WakeUpService extends Thread {
 
 	private ArrayList<WakeUpGroup> groups = new ArrayList<>();
+	private HashSet<UUID> clientsInGroups = new HashSet<>();
 
 	public void addWakeUpGroup(WakeUpGroup wg) {
 		groups.add(wg);
+	}
+
+	public boolean addToGroups(UUID id){
+		return clientsInGroups.add(id);
+	}
+
+	public boolean removeFromGroups(UUID id){
+		return clientsInGroups.remove(id);
 	}
 
 	public void addMember(UUID ID, ClientThread ct) {
