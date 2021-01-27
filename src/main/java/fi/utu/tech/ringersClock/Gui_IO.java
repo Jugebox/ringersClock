@@ -157,35 +157,46 @@ public class Gui_IO {
 		System.out.println("Create New Group pressed, name: " + name + " Wake-up time: " + hour + ":" + minutes + " Rain allowed: " + notRaining + " Temperature over 0 deg: " + temp);
 		System.out.println("Id: " + id);
 
-		/*int alarmHour;
+		int alarmHour;
 		if (hour == 1) alarmHour = 23;
 		else if (hour == 0) alarmHour = 22;
-		else alarmHour = hour - 2;*/
-
+		else alarmHour = hour - 2;
 
 		client.createGroup(group);
 
 		try {
-			if (hour < 10) {
-				CharSequence alarmTime = "2021-01-22T0" + hour + ":" + minutes + ":00Z";
-				Instant time = Instant.parse(alarmTime);
-				System.out.println(time);
-				cont.setAlarmTime(time);
+			if(minutes < 10) {
+				if (alarmHour < 10) {
+					CharSequence alarmTime = "2021-01-22T0" + alarmHour + ":" + "0" + minutes + ":00Z";
+					Instant time = Instant.parse(alarmTime);
+					System.out.println(time);
+					cont.setAlarmTime(time);
+				}
+				else {
+					CharSequence alarmTime = "2021-01-22T" + alarmHour + ":" + "0" + minutes + ":00Z";
+					Instant time = Instant.parse(alarmTime);
+					System.out.println(time);
+					cont.setAlarmTime(time);
+				}
+			} else {
+				if (alarmHour < 10) {
+					CharSequence alarmTime = "2021-01-22T0" + alarmHour + ":" + minutes + ":00Z";
+					Instant time = Instant.parse(alarmTime);
+					System.out.println(time);
+					cont.setAlarmTime(time);
+				}
+				else {
+					CharSequence alarmTime = "2021-01-22T" + alarmHour + ":" + minutes + ":00Z";
+					Instant time = Instant.parse(alarmTime);
+					System.out.println(time);
+					cont.setAlarmTime(time);
+				}
 			}
-			else {
-				CharSequence alarmTime = "2021-01-22T" + hour + ":" + minutes + ":00Z";
-				Instant time = Instant.parse(alarmTime);
-				System.out.println(time);
-				cont.setAlarmTime(time);
-			}
+
+
+
 		} catch (Exception e) {System.out.println(e); }
 
-
-		//2011-12-03T10:15:30Z
-		//CharSequence alarmTime = "2021-01-22T" + hour + ":" + minutes + ":00Z";
-		//Instant time = Instant.parse(alarmTime);
-
-		//cont.setAlarmTime(time);
 	}
 
 	/*
