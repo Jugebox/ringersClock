@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.UUID;
 
 import fi.utu.tech.ringersClock.UI.MainViewController;
@@ -157,46 +158,15 @@ public class Gui_IO {
 		System.out.println("Create New Group pressed, name: " + name + " Wake-up time: " + hour + ":" + minutes + " Rain allowed: " + notRaining + " Temperature over 0 deg: " + temp);
 		System.out.println("Id: " + id);
 
-		int alarmHour;
-		if (hour == 1) alarmHour = 23;
-		else if (hour == 0) alarmHour = 22;
-		else alarmHour = hour - 2;
-
 		client.createGroup(group);
 
-		try {
-			if(minutes < 10) {
-				if (alarmHour < 10) {
-					CharSequence alarmTime = "2021-01-22T0" + alarmHour + ":" + "0" + minutes + ":00Z";
-					Instant time = Instant.parse(alarmTime);
-					System.out.println(time);
-					cont.setAlarmTime(time);
-				}
-				else {
-					CharSequence alarmTime = "2021-01-22T" + alarmHour + ":" + "0" + minutes + ":00Z";
-					Instant time = Instant.parse(alarmTime);
-					System.out.println(time);
-					cont.setAlarmTime(time);
-				}
-			} else {
-				if (alarmHour < 10) {
-					CharSequence alarmTime = "2021-01-22T0" + alarmHour + ":" + minutes + ":00Z";
-					Instant time = Instant.parse(alarmTime);
-					System.out.println(time);
-					cont.setAlarmTime(time);
-				}
-				else {
-					CharSequence alarmTime = "2021-01-22T" + alarmHour + ":" + minutes + ":00Z";
-					Instant time = Instant.parse(alarmTime);
-					System.out.println(time);
-					cont.setAlarmTime(time);
-				}
-			}
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.HOUR_OF_DAY, hour);
+		cal.set(Calendar.MINUTE, minutes);
+		cal.set(Calendar.SECOND, 0);
+		group.wakeUpTime = cal.toInstant();
 
-
-
-		} catch (Exception e) {System.out.println(e); }
-
+		setAlarmTime(cal.toInstant());
 	}
 
 	/*

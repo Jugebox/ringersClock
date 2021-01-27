@@ -1,6 +1,7 @@
 package fi.utu.tech.ringersClock.entities;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -12,6 +13,7 @@ import java.util.UUID;
 public class WakeUpGroup implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+	public Instant wakeUpTime;
 	private String name;
 	private UUID ID;
 	private Integer hour;
