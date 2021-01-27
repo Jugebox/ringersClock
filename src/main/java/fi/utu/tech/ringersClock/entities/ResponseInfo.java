@@ -8,6 +8,8 @@ public class ResponseInfo implements Serializable {
     private boolean isInGroup;
     ArrayList<WakeUpGroup> updatedGroups;
 
+    public String h = "Hellou?";
+
     public ResponseInfo(boolean isInGroup, ArrayList<WakeUpGroup> updatedGroups){
         this.isInGroup = isInGroup;
         this.updatedGroups = updatedGroups;

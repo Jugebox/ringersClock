@@ -11,8 +11,7 @@ import fi.utu.tech.ringersClock.entities.WakeUpGroup;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class ClockClient extends Thread {
 
@@ -39,24 +38,27 @@ public class ClockClient extends Thread {
 
 			clientOutputStream = new ObjectOutputStream(socket.getOutputStream());
 			clientInputStream = new ObjectInputStream(socket.getInputStream());
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		while(running) {
 			try {
 				//Luetaan takaisin tullut objekti...
-				System.out.println("Fetching...");
+				clientOutputStream.writeObject(new RequestInfo(Actions.UPDATE, null));
 				ResponseInfo res = (ResponseInfo) clientInputStream.readObject();
-				System.out.println(res);
-				System.out.println("Fetched!");
+				if(res.getUpdatedGroups().size() > 0) System.out.println(res.getUpdatedGroups().get(0).getName());
 				gio.fillGroups(res.getUpdatedGroups());
+				//Lähetetään update pyyntö 10 sekunnin välein serverille!
+				TimeUnit.SECONDS.sleep(10);
 			} catch (ClassNotFoundException e){
 				e.printStackTrace();
 			}
 			catch (IOException e){
 				e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
-
 		}
 		try{
 			System.out.println("Closing connection to the server...");
@@ -75,8 +77,11 @@ public class ClockClient extends Thread {
 			System.out.println("Try!!!");
 			RequestInfo info = new RequestInfo(Actions.CREATE, group);
 			//Lähetetään objekti...
+			clientOutputStream.reset();
 			clientOutputStream.writeObject(info);
-		} catch (IOException e) {
+			ResponseInfo res = (ResponseInfo) clientInputStream.readObject();
+			gio.fillGroups(res.getUpdatedGroups());
+		} catch (IOException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 	}
@@ -85,8 +90,12 @@ public class ClockClient extends Thread {
 		try{
 			RequestInfo info = new RequestInfo(Actions.JOIN, group);
 			//Lähetetään objekti...
+			clientOutputStream.reset();
 			clientOutputStream.writeObject(info);
-		}catch (IOException e){
+			//ja luetaan vastaus
+			ResponseInfo res = (ResponseInfo) clientInputStream.readObject();
+			gio.fillGroups(res.getUpdatedGroups());
+		}catch (IOException | ClassNotFoundException e){
 			e.printStackTrace();
 		}
 	}
@@ -95,6 +104,7 @@ public class ClockClient extends Thread {
 		try {
 			RequestInfo info = new RequestInfo(Actions.RESIGN, null);
 			//Lähetetään objekti...
+			clientOutputStream.reset();
 			clientOutputStream.writeObject(info);
 		} catch (IOException e){
 			e.printStackTrace();

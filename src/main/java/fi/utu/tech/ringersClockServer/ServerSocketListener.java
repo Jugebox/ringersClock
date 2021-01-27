@@ -32,6 +32,7 @@ public class ServerSocketListener extends Thread {
 				//käynnistetään uusi client säie soketin kera
 				ClientThread ct = new ClientThread(client, wup);
 				ct.start();
+				wup.addToClientThreads(ct);
 			}
 		} catch (Exception e){
 

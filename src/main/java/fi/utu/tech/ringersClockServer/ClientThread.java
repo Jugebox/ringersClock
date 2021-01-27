@@ -4,13 +4,12 @@ import fi.utu.tech.ringersClock.entities.*;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.UUID;
 
 public class ClientThread extends Thread {
 
     private Socket clientSocket;
-    WakeUpService wup;
+    private WakeUpService wup;
     private UUID ID;
     private UUID groupId = null;
 
@@ -30,14 +29,16 @@ public class ClientThread extends Thread {
 
         try {
             //streams
-            InputStream input = clientSocket.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-            serverInputStream = new ObjectInputStream(input);
+            serverInputStream = new ObjectInputStream(clientSocket.getInputStream());
             serverOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
 
             Actions action;
             System.out.println(clientSocket.isClosed());
+
+            int i = 0;
             while(!clientSocket.isClosed()){
+                System.out.println(i);
+                i++;
                 try {
                     //läheteään käyttäjälle tieto siitä kuuluko hän jo ryhmään
                     //selvitetään mitä käyttäjä haluaa tehdä
@@ -48,6 +49,7 @@ public class ClientThread extends Thread {
                         case CREATE:
                             System.out.println("creating a new group...");
                             createNewGroup(info.getGroup());
+                            //wup.broadcastGroups();
                             System.out.println("group created!");
                             continue;
                         case JOIN:
@@ -59,6 +61,7 @@ public class ClientThread extends Thread {
                             resignGroup();
                             continue;
                         case UPDATE:
+                            serverOutputStream.reset();
                             serverOutputStream.writeObject(new ResponseInfo(false, wup.getGroups()));
                             continue;
                         default:
@@ -86,6 +89,10 @@ public class ClientThread extends Thread {
         }
     }
 
+    public void updateGroupList() throws IOException {
+        serverOutputStream.writeObject(new ResponseInfo(false, wup.getGroups()));
+    }
+
     private void resignGroup(){
         if(groupId == null) return;
         wup.removeMember(ID, groupId);
@@ -99,7 +106,6 @@ public class ClientThread extends Thread {
     }
 
     private void createNewGroup(WakeUpGroup group) {
-        System.out.println("HEI VITTU");
         try {
             //onko käyttäjä jo ryhmässä?
             boolean inGroup = wup.addToGroups(ID);
@@ -118,6 +124,9 @@ public class ClientThread extends Thread {
                 wup.addWakeUpGroup(group);
                 System.out.println(group.getName());
 
+                System.out.println(wup.getGroups().get(0).getName());
+
+                serverOutputStream.reset();
                 serverOutputStream.writeObject(new ResponseInfo(false, wup.getGroups()));
 
                 wup.printMembers();
@@ -144,6 +153,7 @@ public class ClientThread extends Thread {
 
                 wup.addMember(groupId, this);
 
+                serverOutputStream.reset();
                 serverOutputStream.writeObject(new ResponseInfo(false, wup.getGroups()));
 
                 wup.printMembers();
