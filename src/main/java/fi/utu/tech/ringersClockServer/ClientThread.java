@@ -163,6 +163,14 @@ public class ClientThread extends Thread {
         }
     }
 
+    public boolean confirmAlarm(){
+        return true;
+    }
+
+    public void alarm(){
+
+    }
+
     public UUID getID(){
         return this.ID;
     }
