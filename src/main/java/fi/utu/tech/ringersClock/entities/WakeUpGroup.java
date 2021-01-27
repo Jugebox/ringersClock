@@ -3,6 +3,7 @@ package fi.utu.tech.ringersClock.entities;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.UUID;
 
 /*
@@ -82,6 +83,12 @@ public class WakeUpGroup implements Serializable {
 
 	public int getMinutes() {
 		return minutes;
+	}
+
+	public Date getAlarmTime() {
+		Date alarmTime = Date.from(wakeUpTime);
+		System.out.println("Alarm time: "+alarmTime);
+		return alarmTime;
 	}
 
 	@Override
