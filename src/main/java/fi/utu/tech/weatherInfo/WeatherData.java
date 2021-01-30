@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class WeatherData {
-	boolean temperature;
-	boolean notRaining;
+	private boolean temperature;
+	private boolean notRaining;
 	/*
 	 * What kind of data is needed? What are the variable types. Define class
 	 * variables to hold the data
@@ -35,5 +35,13 @@ public class WeatherData {
 		else this.notRaining = true;
 
 		System.out.println("Is it not raining? " + notRaining);
+	}
+
+	public boolean isNotRaining() {
+		return notRaining;
+	}
+
+	public boolean isTemperature() {
+		return temperature;
 	}
 }

@@ -5,18 +5,35 @@ import java.util.ArrayList;
 
 public class ResponseInfo implements Serializable {
 
-    private boolean isInGroup;
+    private boolean wantToAlarm;
+    private boolean wantToConfirmAlarm;
+    private boolean cancelAlarm;
+    private WakeUpGroup group;
     ArrayList<WakeUpGroup> updatedGroups;
 
-    public String h = "Hellou?";
-
-    public ResponseInfo(boolean isInGroup, ArrayList<WakeUpGroup> updatedGroups){
-        this.isInGroup = isInGroup;
+    public ResponseInfo(boolean wantToAlarm, boolean wantToConfirmAlarm, WakeUpGroup group, ArrayList<WakeUpGroup> updatedGroups){
+        this.wantToAlarm = wantToAlarm;
+        this.wantToConfirmAlarm = wantToConfirmAlarm;
+        this.group = group;
         this.updatedGroups = updatedGroups;
     }
 
-    public boolean getIsInGroup(){
-        return isInGroup;
+    public boolean alarm(){
+        return wantToAlarm;
+    }
+
+    public boolean confirmAlarm() { return wantToConfirmAlarm; }
+
+    public void setCancelAlarm(boolean cancelAlarm) {
+        this.cancelAlarm = cancelAlarm;
+    }
+
+    public boolean getCancelAlarm() {
+        return cancelAlarm;
+    }
+
+    public WakeUpGroup getGroup() {
+        return group;
     }
 
     public ArrayList<WakeUpGroup> getUpdatedGroups(){

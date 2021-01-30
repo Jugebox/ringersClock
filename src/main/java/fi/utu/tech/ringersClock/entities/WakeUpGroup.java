@@ -1,5 +1,7 @@
 package fi.utu.tech.ringersClock.entities;
 
+import fi.utu.tech.ringersClockServer.AlarmTask;
+
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -14,7 +16,7 @@ import java.util.UUID;
 public class WakeUpGroup implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	public Instant wakeUpTime;
+	private Instant wakeUpTime;
 	private String name;
 	private UUID ID;
 	private Integer hour;
@@ -22,6 +24,7 @@ public class WakeUpGroup implements Serializable {
 	private boolean notRaining;
 	private boolean temp;
 	ArrayList<UUID> members = new ArrayList<>();
+	transient AlarmTask alarmTask;
 
 	public WakeUpGroup(UUID id, String name, Integer hour, Integer minutes) {
 		super();
@@ -85,10 +88,33 @@ public class WakeUpGroup implements Serializable {
 		return minutes;
 	}
 
+	public boolean isNotRaining() {
+		return notRaining;
+	}
+
+	public boolean isTemp() {
+		return temp;
+	}
+
+	public void setWakeUpTime(Instant wakeUpTime){
+		this.wakeUpTime = wakeUpTime;
+	}
+	public Instant getWakeUpTime(){
+		return this.wakeUpTime;
+	}
+
 	public Date getAlarmTime() {
 		Date alarmTime = Date.from(wakeUpTime);
 		System.out.println("Alarm time: "+alarmTime);
 		return alarmTime;
+	}
+
+	public void setAlarmTask(AlarmTask at){
+		this.alarmTask = at;
+	}
+
+	public AlarmTask getAlarmTask() {
+		return alarmTask;
 	}
 
 	@Override

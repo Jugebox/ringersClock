@@ -4,5 +4,9 @@ public enum Actions {
     CREATE,
     JOIN,
     RESIGN,
-    UPDATE
+    UPDATE,
+    CHECKALARM,
+    CHECKALARM_MEMBER,
+    ALARMALL,
+    CANCELALARM
 }

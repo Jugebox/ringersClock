@@ -3,9 +3,16 @@ package fi.utu.tech.ringersClockServer;
 import fi.utu.tech.ringersClock.entities.WakeUpGroup;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.ZoneId;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class WakeUpService extends Thread {
 
@@ -13,8 +20,19 @@ public class WakeUpService extends Thread {
 	private ArrayList<ClientThread> clients = new ArrayList<>();
 	private HashSet<UUID> clientsInGroups = new HashSet<>();
 
-	synchronized public void addWakeUpGroup(WakeUpGroup wg) {
+	synchronized public void addWakeUpGroup(WakeUpGroup wg, ClientThread ct) {
 		groups.add(wg);
+		var duration = Duration.between(new Date().toInstant(), wg.getWakeUpTime().atZone(ZoneId.systemDefault()));
+		ScheduledExecutorService service = Executors.newScheduledThreadPool(1);
+
+		long millisDelay = duration.toMillis();
+		System.out.println(duration.toMinutes());
+
+		AlarmTask task = new AlarmTask(wg);
+		task.addMember(ct);
+		wg.setAlarmTask(task);
+
+		service.schedule(task, millisDelay, TimeUnit.MILLISECONDS);
 	}
 
 	synchronized public boolean addToGroups(UUID id){
@@ -45,6 +63,8 @@ public class WakeUpService extends Thread {
 		for(int i = 0; i < groups.size(); i++){
 			if(groups.get(i).getID().compareTo(ID) == 0) {
 				groups.get(i).addMemeber(ct.getID());
+				//adding to alarmtask
+				groups.get(i).getAlarmTask().addMember(ct);
 			}
 		}
 	}
@@ -63,6 +83,7 @@ public class WakeUpService extends Thread {
 	synchronized public void removeMember(UUID memberId, UUID groupId){
 		WakeUpGroup group = getWakeUpGroup(groupId);
 		int i = group.removeMember(memberId);
+		group.getAlarmTask().removeMember(memberId);
 		if(i == 0) removeGroup(group.getID());
 	}
 

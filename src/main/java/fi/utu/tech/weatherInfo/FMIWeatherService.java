@@ -6,9 +6,10 @@ import org.xml.sax.helpers.XMLReaderFactory;
 
 import javax.xml.parsers.*;
 import javax.xml.xpath.*;
+import java.io.Serializable;
 import java.net.URL;
 
-public class FMIWeatherService {
+public class FMIWeatherService implements Serializable {
 
 	private final String CapURL = "https://opendata.fmi.fi/wfs?request=GetCapabilities";
 	private final String FeaURL = "https://opendata.fmi.fi/wfs?request=GetFeature";
@@ -20,7 +21,7 @@ public class FMIWeatherService {
 	 * Meteorological Institute. The data is received in XML-format.
 	 */
 
-	public static WeatherData getWeather() {
+	public WeatherData getWeather() {
 		String rain = null;
 		String temp = null;
 		Document data = null;

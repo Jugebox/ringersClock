@@ -74,7 +74,7 @@ public class MainViewController {
 			newHour.getItems().add(i);
 		}
 		newHour.setValue(0);
-		for (int i = 0; i < 59; i = i + 5) {
+		for (int i = 0; i < 59; i = i + 1) {
 			newMinute.getItems().add(i);
 		}
 		newMinute.setValue(0);

@@ -1,5 +1,6 @@
 package fi.utu.tech.ringersClock;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -133,6 +134,15 @@ public class Gui_IO {
 	 */
 	public void AlarmAll(WakeUpGroup group) {
 		System.out.println("AlarmAll " + group.getName());
+		try {
+            client.alarmAll();
+        } catch (ClassNotFoundException e){
+		    e.printStackTrace();
+        }
+		catch (IOException e){
+		    e.printStackTrace();
+        }
+
 	}
 
 	/*
@@ -143,6 +153,7 @@ public class Gui_IO {
 	 */
 	public void CancelAlarm(WakeUpGroup group) {
 		System.out.println("CancelAll " + group.getName());
+		client.cancelAlarm();
 	}
 
 	/*
@@ -158,15 +169,15 @@ public class Gui_IO {
 		System.out.println("Create New Group pressed, name: " + name + " Wake-up time: " + hour + ":" + minutes + " Rain allowed: " + notRaining + " Temperature over 0 deg: " + temp);
 		System.out.println("Id: " + id);
 
-		client.createGroup(group);
-
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.HOUR_OF_DAY, hour);
 		cal.set(Calendar.MINUTE, minutes);
 		cal.set(Calendar.SECOND, 0);
-		group.wakeUpTime = cal.toInstant();
+		group.setWakeUpTime(cal.toInstant());
 
 		setAlarmTime(cal.toInstant());
+
+		client.createGroup(group);
 	}
 
 	/*
@@ -177,7 +188,7 @@ public class Gui_IO {
 	 */
 
 	public void joinGroup(WakeUpGroup group) {
-		System.out.println("Join Group pressed" + group.getName());
+		System.out.println("Join Group pressed " + group.getName());
 		client.joinGroup(group);
 	}
 	

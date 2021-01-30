@@ -6,7 +6,7 @@ import java.io.*;
 import java.net.Socket;
 import java.util.UUID;
 
-public class ClientThread extends Thread {
+public class ClientThread extends Thread implements Serializable {
 
     private Socket clientSocket;
     private WakeUpService wup;
@@ -14,6 +14,12 @@ public class ClientThread extends Thread {
     private UUID groupId = null;
 
     private boolean isInGroup = false;
+
+    private boolean alarmTime = false;
+    private boolean wait = true;
+    private boolean alarmAll = false;
+
+    private boolean alarmCanceled = false;
 
     private ObjectInputStream serverInputStream;
     private ObjectOutputStream serverOutputStream;
@@ -33,18 +39,12 @@ public class ClientThread extends Thread {
             serverOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
 
             Actions action;
-            System.out.println(clientSocket.isClosed());
-
-            int i = 0;
             while(!clientSocket.isClosed()){
-                System.out.println(i);
-                i++;
                 try {
                     //läheteään käyttäjälle tieto siitä kuuluko hän jo ryhmään
                     //selvitetään mitä käyttäjä haluaa tehdä
                     RequestInfo info = (RequestInfo) serverInputStream.readObject();
                     action = info.getAction();
-                    System.out.println(action);
                     switch (action){
                         case CREATE:
                             System.out.println("creating a new group...");
@@ -61,8 +61,25 @@ public class ClientThread extends Thread {
                             resignGroup();
                             continue;
                         case UPDATE:
+                            System.out.println("updating...");
                             serverOutputStream.reset();
-                            serverOutputStream.writeObject(new ResponseInfo(false, wup.getGroups()));
+                            serverOutputStream.writeObject(new ResponseInfo(false, false, null, wup.getGroups()));
+                            continue;
+                        case CHECKALARM:
+                            System.out.println("checking for alarm...");
+                            confirmAlarm();
+                            continue;
+                        case CHECKALARM_MEMBER:
+                            System.out.println("checking for member alarm...");
+                            confirmMemberAlarm();
+                            continue;
+                        case ALARMALL:
+                            System.out.println("alarming groups...");
+                            alarm();
+                            continue;
+                        case CANCELALARM:
+                            System.out.println("canceling alarm...");
+                            cancelAlarm();
                             continue;
                         default:
                             continue;
@@ -90,7 +107,7 @@ public class ClientThread extends Thread {
     }
 
     public void updateGroupList() throws IOException {
-        serverOutputStream.writeObject(new ResponseInfo(false, wup.getGroups()));
+        serverOutputStream.writeObject(new ResponseInfo(false, false, null, wup.getGroups()));
     }
 
     private void resignGroup(){
@@ -99,7 +116,7 @@ public class ClientThread extends Thread {
         wup.removeFromGroups(ID);
         groupId = null;
         try {
-            serverOutputStream.writeObject(new ResponseInfo(false, wup.getGroups()));
+            serverOutputStream.writeObject(new ResponseInfo(false, false, null, wup.getGroups()));
         } catch (IOException e){
             e.printStackTrace();
         }
@@ -113,7 +130,7 @@ public class ClientThread extends Thread {
             System.out.println(inGroup);
 
             if(!inGroup){
-                serverOutputStream.writeObject(new ResponseInfo(true, wup.getGroups()));
+                serverOutputStream.writeObject(new ResponseInfo(false, false, null, wup.getGroups()));
             }
             else {
                 //Lisätään wakeup grouppiin käyttäjä ja lähetetään tiedot kaikista ryhmistä takaisin clientille
@@ -121,13 +138,13 @@ public class ClientThread extends Thread {
 
                 this.groupId = group.getID();
 
-                wup.addWakeUpGroup(group);
+                wup.addWakeUpGroup(group, this);
                 System.out.println(group.getName());
 
                 System.out.println(wup.getGroups().get(0).getName());
 
                 serverOutputStream.reset();
-                serverOutputStream.writeObject(new ResponseInfo(false, wup.getGroups()));
+                serverOutputStream.writeObject(new ResponseInfo(false, false, null, wup.getGroups()));
 
                 wup.printMembers();
             }
@@ -143,7 +160,7 @@ public class ClientThread extends Thread {
             boolean inGroup = wup.addToGroups(ID);
 
             if(!inGroup){
-                serverOutputStream.writeObject(new ResponseInfo(true, wup.getGroups()));
+                serverOutputStream.writeObject(new ResponseInfo(false, false, null, wup.getGroups()));
             }
             else {
                 //Lisätään wakeup grouppiin käyttäjä ja lähetetään tiedot kaikista ryhmistä takaisin clientille
@@ -154,7 +171,7 @@ public class ClientThread extends Thread {
                 wup.addMember(groupId, this);
 
                 serverOutputStream.reset();
-                serverOutputStream.writeObject(new ResponseInfo(false, wup.getGroups()));
+                serverOutputStream.writeObject(new ResponseInfo(false, false, null, wup.getGroups()));
 
                 wup.printMembers();
             }
@@ -163,16 +180,100 @@ public class ClientThread extends Thread {
         }
     }
 
-    public boolean confirmAlarm(){
-        return true;
+    public void confirmAlarm() throws IOException, ClassNotFoundException {
+        if(!alarmTime){
+            serverOutputStream.reset();
+            serverOutputStream.writeObject(new ResponseInfo(false, false, null, wup.getGroups()));
+        }
+        else {
+            serverOutputStream.reset();
+            serverOutputStream.writeObject(new ResponseInfo(false, true, wup.getWakeUpGroup(groupId), wup.getGroups()));
+            this.alarmTime = false;
+        }
     }
 
-    public void alarm(){
+    public void confirmMemberAlarm() throws IOException, ClassNotFoundException {
+        System.out.println(alarmTime);
+        if(!alarmTime){
+            serverOutputStream.reset();
+            serverOutputStream.writeObject(new ResponseInfo(false, false, null, wup.getGroups()));
+        }
+       else if (alarmCanceled){
+            serverOutputStream.reset();
+            var info = new ResponseInfo(true, false, wup.getWakeUpGroup(groupId), wup.getGroups());
+            info.setCancelAlarm(true);
+            serverOutputStream.writeObject(info);
+            this.alarmTime = false;
 
+            //removing from group
+            wup.removeFromGroups(this.ID);
+            wup.removeMember(this.ID, groupId);
+            this.groupId = null;
+        }
+        else {
+            System.out.println("Member alarmed!!");
+            serverOutputStream.reset();
+            serverOutputStream.writeObject(new ResponseInfo(true, false, wup.getWakeUpGroup(groupId), wup.getGroups()));
+            this.alarmTime = false;
+
+            //removing from group
+            wup.removeFromGroups(this.ID);
+            wup.removeMember(this.ID, groupId);
+            this.groupId = null;
+        }
+    }
+
+    public void alarm() throws IOException, ClassNotFoundException {
+        System.out.println("Alarmed!");
+        this.alarmAll = true;
+        this.wait = false;
+        serverOutputStream.reset();
+        serverOutputStream.writeObject(new ResponseInfo(true, false, wup.getWakeUpGroup(groupId), wup.getGroups()));
+
+        //removing from group
+        wup.removeFromGroups(this.ID);
+        wup.removeMember(this.ID, groupId);
+        this.groupId = null;
+    }
+
+    public void cancelAlarm() throws IOException, ClassNotFoundException{
+        System.out.println("Canceled!");
+        this.alarmAll = false;
+        this.wait = false;
+        serverOutputStream.reset();
+        var res = new ResponseInfo(false, false, wup.getWakeUpGroup(groupId), wup.getGroups());
+        res.setCancelAlarm(true);
+        serverOutputStream.writeObject(res);
+
+        //removing from group
+        wup.removeFromGroups(this.ID);
+        wup.removeMember(this.ID, groupId);
+        this.groupId = null;
+    }
+
+    public void setAlarmCanceled(){
+        System.out.println("cancel...");
+        this.alarmCanceled = true;
     }
 
     public UUID getID(){
         return this.ID;
+    }
+
+    public void setAlarmTime() {
+        this.alarmTime = true;
+    }
+
+    public boolean getWait(){
+        return this.wait;
+    }
+
+    public void setAlarmAll(boolean b){
+        this.alarmAll = b;
+    }
+
+    public boolean getAlarmAll() {
+        return this.alarmAll;
     }
 
 }
