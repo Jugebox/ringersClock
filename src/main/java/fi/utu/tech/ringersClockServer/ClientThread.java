@@ -112,6 +112,7 @@ public class ClientThread extends Thread implements Serializable {
 
     private void resignGroup(){
         if(groupId == null) return;
+        wup.getWakeUpGroup(groupId).getAlarmTask().cancelAlarms();
         wup.removeMember(ID, groupId);
         wup.removeFromGroups(ID);
         groupId = null;
@@ -181,7 +182,20 @@ public class ClientThread extends Thread implements Serializable {
     }
 
     public void confirmAlarm() throws IOException, ClassNotFoundException {
-        if(!alarmTime){
+        if (alarmCanceled){
+            serverOutputStream.reset();
+            var info = new ResponseInfo(false, false, wup.getWakeUpGroup(groupId), wup.getGroups());
+            info.setCancelAlarm(true);
+            serverOutputStream.writeObject(info);
+            this.alarmTime = false;
+
+            //removing from group
+            wup.removeFromGroups(this.ID);
+            wup.removeMember(this.ID, groupId);
+            this.groupId = null;
+            this.alarmCanceled = false;
+        }
+        else if(!alarmTime){
             serverOutputStream.reset();
             serverOutputStream.writeObject(new ResponseInfo(false, false, null, wup.getGroups()));
         }
@@ -194,21 +208,21 @@ public class ClientThread extends Thread implements Serializable {
 
     public void confirmMemberAlarm() throws IOException, ClassNotFoundException {
         System.out.println(alarmTime);
-        if(!alarmTime){
+        if (alarmCanceled){
             serverOutputStream.reset();
-            serverOutputStream.writeObject(new ResponseInfo(false, false, null, wup.getGroups()));
-        }
-       else if (alarmCanceled){
-            serverOutputStream.reset();
-            var info = new ResponseInfo(true, false, wup.getWakeUpGroup(groupId), wup.getGroups());
+            var info = new ResponseInfo(false, false, wup.getWakeUpGroup(groupId), wup.getGroups());
             info.setCancelAlarm(true);
             serverOutputStream.writeObject(info);
             this.alarmTime = false;
 
             //removing from group
             wup.removeFromGroups(this.ID);
-            wup.removeMember(this.ID, groupId);
             this.groupId = null;
+            this.alarmCanceled = false;
+        }
+        else if(!alarmTime){
+            serverOutputStream.reset();
+            serverOutputStream.writeObject(new ResponseInfo(false, false, null, wup.getGroups()));
         }
         else {
             System.out.println("Member alarmed!!");
@@ -218,7 +232,6 @@ public class ClientThread extends Thread implements Serializable {
 
             //removing from group
             wup.removeFromGroups(this.ID);
-            wup.removeMember(this.ID, groupId);
             this.groupId = null;
         }
     }
@@ -234,6 +247,7 @@ public class ClientThread extends Thread implements Serializable {
         wup.removeFromGroups(this.ID);
         wup.removeMember(this.ID, groupId);
         this.groupId = null;
+        this.alarmCanceled = false;
     }
 
     public void cancelAlarm() throws IOException, ClassNotFoundException{
@@ -249,6 +263,7 @@ public class ClientThread extends Thread implements Serializable {
         wup.removeFromGroups(this.ID);
         wup.removeMember(this.ID, groupId);
         this.groupId = null;
+        this.alarmCanceled = false;
     }
 
     public void setAlarmCanceled(){

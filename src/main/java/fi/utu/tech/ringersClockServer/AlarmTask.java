@@ -34,41 +34,55 @@ public class AlarmTask implements Runnable, Serializable {
         }
     }
 
+    public void cancelAlarms(){
+        for(int i = 0; i < clients.size(); i++){
+            if(i == 0) continue;
+            System.out.println("cancer");
+            clients.get(i).setAlarmCanceled();
+        }
+    }
+
     public void run(){
-        try {
             //setting alarmtime to true
             var leader = clients.get(0);
             WeatherData wd = ws.getWeather();
-            if(wg.isNotRaining() != wd.isNotRaining() || wg.isTemp() != wd.isTemperature()){
+            System.out.println("Group raining: " + wg.isNotRaining() + ", Data raining: " + wd.isNotRaining());
+            System.out.println("Group temp: " + wg.isTemp() + ", Data temp: " + wd.isTemperature());
+
+            if((wg.isNotRaining() && !wd.isNotRaining()) || (wg.isTemp() && !wd.isTemperature())){
+                System.out.println("here...");
                 for(ClientThread c : clients){
+                    System.out.println("cancer");
                     c.setAlarmCanceled();
                 }
+                return;
             }
+
             leader.setAlarmTime();
-            System.out.println("Here");
+            System.out.println("Waiting for leader decision...");
             while (leader.getWait()){
-                System.out.println("stalling");
+                System.out.println("stalling...");
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e){
+                    e.printStackTrace();
+                }
             };
+            System.out.println("Decided!");
+
             boolean leaderDecision = leader.getAlarmAll();
             System.out.println("Alarmtask decision " + leaderDecision);
             if(!leaderDecision) {
                 for(ClientThread c : clients){
-                    c.cancelAlarm();
+                    c.setAlarmCanceled();
                 }
             }
             else {
                 for (ClientThread c : clients) {
-                    System.out.println("plz");
+                    System.out.println("Set and go");
                     c.setAlarmTime();
                 }
             }
             leader.setAlarmAll(false);
-        } catch (IOException e){
-            System.out.println("Vittu IO");
-            e.printStackTrace();
-        } catch (ClassNotFoundException e){
-            System.out.println("Vittu ClassNotFound");
-            e.printStackTrace();
-        }
     }
 }

@@ -2,10 +2,8 @@ package fi.utu.tech.ringersClockServer;
 
 import fi.utu.tech.ringersClock.entities.WakeUpGroup;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.time.ZoneId;
-import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -41,20 +39,6 @@ public class WakeUpService extends Thread {
 
 	synchronized public void addToClientThreads(ClientThread ct) { clients.add(ct); }
 
-	//Funktio jolla voidaan päivittää uudet tiedot eri ryhmistä kaikille käyttäjille!
-	//Ehkä turha
-	public void broadcastGroups() throws IOException {
-		for (ClientThread c : clients){
-			c.updateGroupList();
-			//broadcasting to existing clients only
-			for(UUID i : clientsInGroups){
-				if(i.compareTo(c.getID()) == 0){
-					c.updateGroupList();
-				}
-			}
-		}
-	}
-
 	synchronized public boolean removeFromGroups(UUID id){
 		return clientsInGroups.remove(id);
 	}
@@ -85,6 +69,7 @@ public class WakeUpService extends Thread {
 		int i = group.removeMember(memberId);
 		group.getAlarmTask().removeMember(memberId);
 		if(i == 0) removeGroup(group.getID());
+		printMembers();
 	}
 
 	synchronized public void removeGroup(UUID groupId){
@@ -97,6 +82,7 @@ public class WakeUpService extends Thread {
 				groups.remove(i);
 			}
 		}
+		printMembers();
 	}
 
 	public void printMembers(){

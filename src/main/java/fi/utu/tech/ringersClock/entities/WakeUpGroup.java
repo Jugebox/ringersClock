@@ -26,12 +26,14 @@ public class WakeUpGroup implements Serializable {
 	ArrayList<UUID> members = new ArrayList<>();
 	transient AlarmTask alarmTask;
 
-	public WakeUpGroup(UUID id, String name, Integer hour, Integer minutes) {
+	public WakeUpGroup(UUID id, String name, Integer hour, Integer minutes, boolean notRaining, boolean temp) {
 		super();
 		this.ID = id;
 		this.name = name;
 		this.hour = hour;
 		this.minutes = minutes;
+		this.notRaining = notRaining;
+		this.temp = temp;
 	}
 
 	public String getName() {

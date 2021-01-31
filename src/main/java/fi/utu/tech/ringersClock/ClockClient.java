@@ -58,42 +58,16 @@ public class ClockClient extends Thread {
 					else checkAlarmMember();
 				}
 				catch (IOException e){ e.printStackTrace(); }
-				catch (ClassNotFoundException e){
-					System.out.println("ÄÄÄÄH"); e.printStackTrace(); }
+				catch (ClassNotFoundException e){ e.printStackTrace(); }
 				catch(InterruptedException e){ e.printStackTrace(); }
 			}
 		};
 
 		Timer pollTimer = new Timer(true);
 		pollTimer.scheduleAtFixedRate(pollServer, 0, 1000 * 10);
-
-		/*var pollAlarm = new TimerTask() {
-			public void run() {
-				checkAlarm();
-			}
-		};
-
-		Timer alarmTimer = new Timer(true);
-		alarmTimer.scheduleAtFixedRate(pollAlarm, 0, 1000 * 10);*/
-
 		//===============================
 
-		while(running) {
-			/*try {
-
-				ResponseInfo res = (ResponseInfo) clientInputStream.readObject();
-
-				if(res.alarm()) gio.alarm();
-				if(res.confirmAlarm()) gio.confirmAlarm(res.getGroup());
-				if(res.getCancelAlarm()) gio.clearAlarmTime();
-
-			} catch (ClassNotFoundException e){
-				e.printStackTrace();
-			}
-			catch (IOException e){
-				e.printStackTrace();
-			}*/
-		}
+		while(running);
 		try{
 			System.out.println("Closing connection to the server...");
 
@@ -115,7 +89,7 @@ public class ClockClient extends Thread {
 			ResponseInfo res = (ResponseInfo) clientInputStream.readObject();
 			gio.fillGroups(res.getUpdatedGroups());
 			this.isLeader = true;
-			gio.appendToStatus("Group " + res.getGroup().getName() + " created!");
+			gio.appendToStatus("Group created!");
 		} catch (IOException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -130,7 +104,7 @@ public class ClockClient extends Thread {
 			//ja luetaan vastaus
 			ResponseInfo res = (ResponseInfo) clientInputStream.readObject();
 			gio.fillGroups(res.getUpdatedGroups());
-			gio.appendToStatus("Group " + res.getGroup().getName() + " joined!");
+			gio.appendToStatus("Group joined!");
 		}catch (IOException | ClassNotFoundException e){
 			e.printStackTrace();
 		}
@@ -167,9 +141,12 @@ public class ClockClient extends Thread {
 			if(res.alarm()) gio.alarm();
 			if (res.confirmAlarm()) {
 				gio.confirmAlarm(res.getGroup());
-
 			}
-			if(res.getCancelAlarm()) gio.clearAlarmTime();
+			if(res.getCancelAlarm()) {
+				gio.clearAlarmTime();
+				gio.appendToStatus("Alarm canceled due to bad weather conditions or leader decision...");
+				System.out.println("Alarm was canceled!");
+			};
 		}
 		catch (IOException e){ e.printStackTrace(); }
 		catch (ClassNotFoundException e){ e.printStackTrace(); }
@@ -185,8 +162,13 @@ public class ClockClient extends Thread {
 			if(res.alarm()) {
 				System.out.println("Client alarmed");
 				gio.alarm();
+				gio.clearAlarmTime();
 			}
-			if(res.getCancelAlarm()) gio.clearAlarmTime();
+			if(res.getCancelAlarm()) {
+				gio.clearAlarmTime();
+				gio.appendToStatus("Alarm canceled due to bad weather conditions or leader decision...");
+				System.out.println("Alarm was canceled!");
+			};
 		}
 		catch (IOException e){ e.printStackTrace(); }
 		catch (ClassNotFoundException e){ e.printStackTrace(); }
